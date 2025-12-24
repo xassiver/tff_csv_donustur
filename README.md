@@ -1,3 +1,7 @@
+[![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey.svg)](https://www.microsoft.com/windows)
+![Downloads](https://img.shields.io/github/downloads/xassiver/tff_csv_donustur/total)
+![GitHub Repo stars](https://img.shields.io/github/stars/xassiver/tff_csv_donustur)
+
 # TFF Verilerini CSV’ye Dönüştürme
 
 Bu proje, **TFF (Türkiye Futbol Federasyonu)** sitesinde yer alan bilgileri otomatik olarak çekip **CSV dosyasına dönüştürmek** için hazırlanmıştır.
