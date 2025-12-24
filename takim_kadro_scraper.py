@@ -1,5 +1,7 @@
 import time
 import csv
+import os
+import subprocess
 from selenium import webdriver
 from selenium.webdriver.edge.service import Service
 from selenium.webdriver.common.by import By
@@ -108,21 +110,43 @@ def main():
     driver.quit()
     print(f"Toplam {len(oyuncu_linkleri)} oyuncu linki bulundu. Bilgiler çekiliyor...")
     bilgiler = []
-    for link in oyuncu_linkleri:
+    hatali_linkler = []
+    toplam = len(oyuncu_linkleri)
+    for idx, link in enumerate(oyuncu_linkleri, 1):
         veri = oyuncu_bilgisi_cek(link)
+        # İlerleme barı
+        bar_len = 30
+        dolu = int(bar_len * idx / toplam)
+        bos = bar_len - dolu
+        print(f"[{('='*dolu)+'>'+(' '*bos)}] {idx}/{toplam}", end='\r')
         if veri:
-            print(f"Çekilen: {veri}")
             bilgiler.append(veri)
         else:
-            print(f"Veri çekilemedi! {link}")
+            hatali_linkler.append(link)
+    print() # Son ilerleme barı satırı
+    # Çekilen bilgileri tablo şeklinde göster
     if bilgiler:
+        print("\nÇekilen Oyuncu Bilgileri:")
+        print(f"{'Ad':<25} {'Doğum Tarihi':<12} {'Uyruk':<6} {'Kulüp':<25} {'Doğum Yeri':<15}")
+        print("-"*85)
+        for b in bilgiler:
+            print(f"{b[0]:<25} {b[1]:<12} {b[2]:<6} {b[3]:<25} {b[4]:<15}")
         with open(dosya_yolu, "w", newline='', encoding="utf-8") as f:
             writer = csv.writer(f)
             writer.writerow(["Ad", "Doğum Tarihi", "Uyruk", "Kulüp", "Doğum Yeri"])
             writer.writerows(bilgiler)
-        print(f"{dosya_yolu} kaydedildi.")
+        print(f"\n{dosya_yolu} kaydedildi.")
     else:
         print("Hiç veri kaydedilmedi.")
+    # Özet rapor
+    print("\n--- Özet Rapor ---")
+    print(f"Toplam oyuncu: {toplam}")
+    print(f"Başarıyla çekilen: {len(bilgiler)}")
+    print(f"Hatalı/çekilemeyen: {len(hatali_linkler)}")
+    if hatali_linkler:
+        print("Hatalı linkler:")
+        for l in hatali_linkler:
+            print(l)
 
 if __name__ == "__main__":
     main()

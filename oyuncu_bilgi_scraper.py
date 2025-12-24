@@ -1,9 +1,11 @@
 import csv
 import time
+import os
 from selenium import webdriver
 from selenium.webdriver.edge.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.edge.options import Options
+import subprocess
 
 def dogum_tarihi_formatla(dt):
     # "26 Ocak 1998" -> "1998/01/26"
@@ -98,13 +100,65 @@ def main():
                 continue
             linkler.append(link)
         print(f"Toplam {len(linkler)} link alındı. Veri çekiliyor...")
-        for link in linkler:
+        hatali_linkler = []
+        toplam = len(linkler)
+        for idx, link in enumerate(linkler, 1):
             veri = oyuncu_bilgisi_cek(link)
+            bar_len = 30
+            dolu = int(bar_len * idx / toplam)
+            bos = bar_len - dolu
+            print(f"[{('='*dolu)+'>'+(' '*bos)}] {idx}/{toplam}", end='\r')
             if veri:
-                print(f"Çekilen: {veri}")
                 bilgiler.append(veri)
             else:
-                print(f"Veri çekilemedi! {link}")
+                hatali_linkler.append(link)
+        print()
+    else:
+        # Detaylı mod: her linkte anında veri çek
+        print("Oyuncu linkini girin. Bitirmek için sadece Enter'a basın.")
+        hatali_linkler = []
+        idx = 0
+        while True:
+            link = input("Oyuncu linki: ")
+            if link.strip() == "":
+                break
+            if not link.startswith("http"):
+                print("Lütfen tam link girin (https:// ile başlasın)")
+                continue
+            idx += 1
+            veri = oyuncu_bilgisi_cek(link)
+            bar_len = 30
+            dolu = int(bar_len * idx / (idx if idx > 0 else 1))
+            bos = bar_len - dolu
+            print(f"[{('='*dolu)+'>'+(' '*bos)}] {idx}", end='\r')
+            if veri:
+                bilgiler.append(veri)
+            else:
+                hatali_linkler.append(link)
+        print()
+    # Çekilen bilgileri tablo şeklinde göster
+    if bilgiler:
+        print("\nÇekilen Oyuncu Bilgileri:")
+        print(f"{'Ad':<25} {'Doğum Tarihi':<12} {'Uyruk':<6} {'Kulüp':<25} {'Doğum Yeri':<15}")
+        print("-"*85)
+        for b in bilgiler:
+            print(f"{b[0]:<25} {b[1]:<12} {b[2]:<6} {b[3]:<25} {b[4]:<15}")
+        with open(dosya_yolu, "w", newline='', encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(["Ad", "Doğum Tarihi", "Uyruk", "Kulüp", "Doğum Yeri"])
+            writer.writerows(bilgiler)
+        print(f"\n{dosya_yolu} kaydedildi.")
+    else:
+        print("Hiç veri kaydedilmedi.")
+    # Özet rapor
+    print("\n--- Özet Rapor ---")
+    print(f"Toplam oyuncu: {len(bilgiler) + len(hatali_linkler)}")
+    print(f"Başarıyla çekilen: {len(bilgiler)}")
+    print(f"Hatalı/çekilemeyen: {len(hatali_linkler)}")
+    if hatali_linkler:
+        print("Hatalı linkler:")
+        for l in hatali_linkler:
+            print(l)
     else:
         # Detaylı mod: her linkte anında veri çek
         print("Oyuncu linkini girin. Bitirmek için sadece Enter'a basın.")
